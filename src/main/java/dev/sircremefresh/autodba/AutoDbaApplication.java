@@ -6,8 +6,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class AutoDbaApplication {
 
+
 	public static void main(String[] args) {
-		SpringApplication.run(AutoDbaApplication.class, args);
+		createSpringApplication().run(args);
+	}
+
+	public static SpringApplication createSpringApplication() {
+		return new SpringApplication(AutoDbaApplication.class);
 	}
 
 }
