@@ -18,7 +18,7 @@ abstract class AbstractIntegrationTest {
 
 	static class Initializer
 			implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-		private static final String IMAGE_TAG = "postgres:1.13";
+		private static final String IMAGE_TAG = "postgres:13-alpine";
 
 		static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(IMAGE_TAG);
 
