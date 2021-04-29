@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
@@ -20,9 +21,12 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 		this.client = client;
 	}
 
+	@Value( "${spring.datasource.url}" )
+	private String datasourceUrl;
+
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
-		System.out.println("asldkfjaölskdfö");
+		System.out.println("asldkfjaölskdfö. datasourceUrl: " + datasourceUrl);
 
 		List<Pod> list = client.pods().list().getItems();
 

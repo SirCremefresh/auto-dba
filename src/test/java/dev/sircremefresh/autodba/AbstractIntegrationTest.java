@@ -22,23 +22,23 @@ abstract class AbstractIntegrationTest {
 
 		static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(IMAGE_TAG);
 
-		public static Map<String, String> getProperties() {
+		@Override
+		public void initialize(ConfigurableApplicationContext context) {
 			postgres.start();
 
-			return Map.of(
+			Map<String, Object> properties = Map.of(
 					"spring.datasource.url", postgres.getJdbcUrl(),
 					"spring.datasource.username", postgres.getUsername(),
 					"spring.datasource.password", postgres.getPassword()
 			);
-		}
 
-		@Override
-		public void initialize(ConfigurableApplicationContext context) {
-			var env = context.getEnvironment();
-			env.getPropertySources().addFirst(new MapPropertySource(
-					"testcontainers",
-					(Map) getProperties()
-			));
+			context
+					.getEnvironment()
+					.getPropertySources()
+					.addFirst(new MapPropertySource(
+							"testcontainers",
+							properties
+					));
 		}
 	}
 }
