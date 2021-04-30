@@ -33,4 +33,5 @@ build/
 .vscode/
 
 ### Maven ###
-.mvn
+.mvn/wrapper/*
+!.mvn/wrapper/maven-wrapper.properties
