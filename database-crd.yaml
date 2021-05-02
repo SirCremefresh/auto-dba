@@ -1,0 +1,100 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  labels:
+    app: auto-dba
+  name: databases.autodba.sircremefresh.dev
+  namespace: auto-dba-dev
+spec:
+  group: autodba.sircremefresh.dev
+  names:
+    kind: Database
+    listKind: DatabaseList
+    plural: databases
+    singular: database
+  scope: Namespaced
+  versions:
+    - name: v1
+      schema:
+        openAPIV3Schema:
+          description: "A Database"
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: Desired state of the Certificate resource.
+              properties:
+                databaseName:
+                  description: 'CommonName is a common name to be used on the Certificate.
+                  The CommonName should have a length of 64 characters or fewer to
+                  avoid generating invalid CSRs. This value is ignored by TLS clients
+                  when any subject alt name is set. This is x509 behaviour: https://tools.ietf.org/html/rfc6125#section-6.4.4'
+                  type: string
+                secretName:
+                  description: SecretName is the name of the secret resource that will
+                    be automatically created and managed by this Certificate resource.
+                    It will be populated with a private key and certificate, signed
+                    by the denoted issuer.
+                  type: string
+              required:
+                - databaseName
+                - secretName
+              type: object
+            status:
+              description: Status of the Certificate. This is set and managed automatically.
+              properties:
+                conditions:
+                  description: List of status conditions to indicate the status of certificates.
+                    Known condition types are `Ready` and `Issuing`.
+                  items:
+                    description: CertificateCondition contains condition information
+                      for an Certificate.
+                    properties:
+                      lastTransitionTime:
+                        description: LastTransitionTime is the timestamp corresponding
+                          to the last status change of this condition.
+                        format: date-time
+                        type: string
+                      message:
+                        description: Message is a human readable description of the
+                          details of the last transition, complementing reason.
+                        type: string
+                      reason:
+                        description: Reason is a brief machine readable explanation
+                          for the condition's last transition.
+                        type: string
+                      status:
+                        description: Status of the condition, one of (`True`, `False`,
+                          `Unknown`).
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                        type: string
+                      type:
+                        description: Type of the condition, known values are (`Ready`,
+                          `Issuing`).
+                        type: string
+                    required:
+                      - status
+                      - type
+                    type: object
+                  type: array
+              type: object
+          required:
+            - spec
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: { }

@@ -1,0 +1,8 @@
+apiVersion: autodba.sircremefresh.dev/v1
+kind: Database
+metadata:
+  namespace: auto-dba-dev
+  name: test-database
+spec:
+  databaseName: Hello
+  secretName: test-database-secret
