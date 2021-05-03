@@ -1,4 +1,4 @@
-apiVersion: autodba.sircremefresh.dev/v1
+apiVersion: autodba.sircremefresh.dev/v1alpha1
 kind: Database
 metadata:
   namespace: auto-dba-dev

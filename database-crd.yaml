@@ -14,7 +14,7 @@ spec:
     singular: database
   scope: Namespaced
   versions:
-    - name: v1
+    - name: v1alpha1
       schema:
         openAPIV3Schema:
           description: "A Database"
@@ -53,43 +53,27 @@ spec:
             status:
               description: Status of the Certificate. This is set and managed automatically.
               properties:
-                conditions:
-                  description: List of status conditions to indicate the status of certificates.
-                    Known condition types are `Ready` and `Issuing`.
-                  items:
-                    description: CertificateCondition contains condition information
-                      for an Certificate.
-                    properties:
-                      lastTransitionTime:
-                        description: LastTransitionTime is the timestamp corresponding
-                          to the last status change of this condition.
-                        format: date-time
-                        type: string
-                      message:
-                        description: Message is a human readable description of the
-                          details of the last transition, complementing reason.
-                        type: string
-                      reason:
-                        description: Reason is a brief machine readable explanation
-                          for the condition's last transition.
-                        type: string
-                      status:
-                        description: Status of the condition, one of (`True`, `False`,
-                          `Unknown`).
-                        enum:
-                          - "True"
-                          - "False"
-                          - Unknown
-                        type: string
-                      type:
-                        description: Type of the condition, known values are (`Ready`,
-                          `Issuing`).
-                        type: string
-                    required:
-                      - status
-                      - type
-                    type: object
-                  type: array
+                lastTransitionTime:
+                  description: LastTransitionTime is the timestamp corresponding
+                    to the last status change of this condition.
+                  format: date-time
+                  type: string
+                status:
+                  description: Status of the condition, one of (`True`, `False`,
+                    `Unknown`).
+                  enum:
+                    - "True"
+                    - "False"
+                    - Unknown
+                  type: string
+                type:
+                  description: Type of the condition, known values are (`Ready`,
+                    `Issuing`).
+                  type: string
+              required:
+                - lastTransitionTime
+                - status
+                - type
               type: object
           required:
             - spec
