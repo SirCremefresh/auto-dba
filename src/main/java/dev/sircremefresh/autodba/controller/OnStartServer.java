@@ -37,8 +37,8 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 
 		val databaseClient = client.customResources(Database.class, DatabaseList.class);
 
-		val databaseResource = databaseClient.withName("test-database");
-		System.out.println(databaseResource);
+		val databaseResource = databaseClient.inAnyNamespace().list();
+		System.out.println(databaseResource.getItems());
 
 //		items.forEach(database -> {
 //			database.setStatus(
