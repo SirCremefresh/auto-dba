@@ -2,9 +2,10 @@ package dev.sircremefresh.autodba.controller;
 
 import dev.sircremefresh.autodba.controller.crd.Database;
 import dev.sircremefresh.autodba.controller.crd.DatabaseList;
-import dev.sircremefresh.autodba.controller.crd.DatabaseSpec;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,52 +27,57 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 		System.out.println("datasourceUrl: " + datasourceUrl);
-
+		KubernetesDeserializer.registerCustomKind("v1alpha1", "Database", Database.class);
 		val databaseClient = client.customResources(Database.class, DatabaseList.class);
 
 
-		Database d = new Database();
-		d.setMetadata(
-				new ObjectMetaBuilder()
-						.withName("aaaaa")
-						.build()
-		);
-		d.setSpec(DatabaseSpec.builder()
-				.databaseName("asdfasd")
-				.secretName("asdfasdfasd").build());
+//		Database d = new Database();
+//		d.setMetadata(
+//				new ObjectMetaBuilder()
+//						.withName("aaaaa")
+//						.build()
+//		);
+//		d.setSpec(DatabaseSpec.builder()
+//				.databaseName("asdfasd")
+//				.secretName("asdfasdfasd").build());
+//
+//		databaseClient.inNamespace("auto-dba-dev").create(d);
 
-		databaseClient.inNamespace("auto-dba-dev").create(d);
-
-//		databaseClient.watch(new Watcher<>() {
-//			@Override
-//			public void eventReceived(Action action, Database resource) {
-////				resource.setStatus(
-////						DatabaseStatus.builder()
-////								.type("True")
-////								.status("True")
-////								.lastTransitionTime(LocalDateTime.now())
-////								.build()
-////				);
-////				resource.setSpec(
-////						resource.getSpec().toBuilder()
-////								.databaseName("laskjdflaskd")
-////								.build()
-////				);
+		databaseClient.inAnyNamespace().watch(new Watcher<>() {
+			@Override
+			public void eventReceived(Action action, Database resource) {
+				databaseClient.inNamespace(resource.getMetadata().getNamespace()).withName(resource.getMetadata().getName()).edit(database -> {
+					database.getSpec().setDatabaseName("alsdf");
+					return database;
+				});
+//				resource.setStatus(
+//						DatabaseStatus.builder()
+//								.type("True")
+//								.status("True")
+//								.lastTransitionTime(LocalDateTime.now())
+//								.build()
+//				);
+//				resource.setSpec(
+//						resource.getSpec().toBuilder()
+//								.databaseName("laskjdflaskd")
+//								.build()
+//				);
+//				resource.getMetadata().setName("asdfasdddddd");
 //				resource.getSpec().setDatabaseName("alskdfj");
 //				databaseClient.replace(resource);
-//				System.out.println("Found resource. " +
-//						"name: " + resource.getMetadata().getName() +
-//						", version: " + resource.getMetadata().getResourceVersion());
-//			}
-//
-//			@Override
-//			public void onClose(WatcherException cause) {
-//				if (cause != null) {
-//					cause.printStackTrace();
-//					System.exit(-1);
-//				}
-//			}
-//		});
+				System.out.println("Found resource. " +
+						"name: " + resource.getMetadata().getName() +
+						", version: " + resource.getMetadata().getResourceVersion());
+			}
+
+			@Override
+			public void onClose(WatcherException cause) {
+				if (cause != null) {
+					cause.printStackTrace();
+					System.exit(-1);
+				}
+			}
+		});
 
 //		val databaseResource = databaseClient.inAnyNamespace().list();
 //		System.out.println(databaseResource.getItems());
