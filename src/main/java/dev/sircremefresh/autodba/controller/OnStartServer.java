@@ -1,13 +1,13 @@
 package dev.sircremefresh.autodba.controller;
 
-import dev.sircremefresh.autodba.controller.crd.Database;
-import dev.sircremefresh.autodba.controller.crd.DatabaseList;
+import dev.sircremefresh.autodba.controller.database.DatabaseReconciler;
+import dev.sircremefresh.autodba.controller.database.crd.Database;
+import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -16,20 +16,22 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OnStartServer implements ApplicationListener<ContextRefreshedEvent> {
-	final KubernetesClient client;
+	private final KubernetesClient client;
+	private final DatabaseReconciler databaseReconciler;
+
 	@Value("${spring.datasource.url}")
 	private String datasourceUrl;
 
 	@Autowired
-	public OnStartServer(KubernetesClient client) {
+	public OnStartServer(KubernetesClient client, DatabaseReconciler databaseReconciler) {
 		this.client = client;
+		this.databaseReconciler = databaseReconciler;
 	}
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {
 		System.out.println("datasourceUrl: " + datasourceUrl);
 		KubernetesDeserializer.registerCustomKind("v1alpha1", "Database", Database.class);
-		val databaseClient = client.customResources(Database.class, DatabaseList.class);
 
 		SharedInformerFactory sharedInformerFactory = client.informers();
 
@@ -44,6 +46,8 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 			@Override
 			public void onUpdate(Database oldDatabase, Database newDatabase) {
 				System.out.printf("%s database updated\n", oldDatabase.getMetadata().getName());
+				System.out.printf("version1: %s, version: %s\n", oldDatabase.getMetadata().getResourceVersion(), newDatabase.getMetadata().getResourceVersion());
+				databaseReconciler.reconcile(oldDatabase, newDatabase);
 			}
 
 			@Override

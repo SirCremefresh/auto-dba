@@ -1,4 +1,4 @@
-package dev.sircremefresh.autodba.controller.crd;
+package dev.sircremefresh.autodba.controller.database.crd;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

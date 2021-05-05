@@ -5,4 +5,4 @@ metadata:
   name: test-database
 spec:
   databaseName: Hello2
-  secretName: test-database-secret
+  secretName: test-database-secret-2
