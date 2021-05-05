@@ -35,7 +35,7 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 
 		SharedInformerFactory sharedInformerFactory = client.informers();
 
-		SharedIndexInformer<Database> databaseInformer = sharedInformerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, 60 * 1000L);
+		SharedIndexInformer<Database> databaseInformer = sharedInformerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, 15 * 1000L);
 
 		databaseInformer.addEventHandler(new ResourceEventHandler<>() {
 			@Override
