@@ -5,9 +5,14 @@ import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 @Repository
 public class DatabaseReconciler {
@@ -26,9 +31,30 @@ public class DatabaseReconciler {
 
 	public void reconcile(Database oldDatabase, Database newDatabase) {
 		System.out.println(jdbcTemplate.getQueryTimeout());
-//		jdbcTemplate.execute("select 1;");
-//		jdbcTemplate.execute("SELECT 1/count(*) FROM pg_database WHERE datname='db_name'");
-		jdbcTemplate.execute("create user " + newDatabase.getSpec().getDatabaseName() + " with encrypted password 'mypass';");
-		jdbcTemplate.execute("create database " + newDatabase.getSpec().getDatabaseName() + " OWNER " + newDatabase.getSpec().getDatabaseName() + ";");
+		val databaseName = newDatabase.getSpec().getDatabaseName();
+		if (!doesUserExist(databaseName)) {
+			System.out.println("created user: " + databaseName);
+			createUser(databaseName);
+		} else {
+			System.out.println("user already exists: " + databaseName);
+		}
+	}
+
+	private void createUser(String user) {
+		jdbcTemplate.execute("create user " + user + " with encrypted password 'mypass';");
+		jdbcTemplate.execute("create database " + user + " OWNER " + user + ";");
+	}
+
+	private boolean doesUserExist(String user) {
+		val res = jdbcTemplate.query("SELECT count(*) as count FROM pg_database WHERE datname='?'", new CountRowMapper(), user);
+		return res.get(0);
+	}
+
+
+	public class CountRowMapper implements RowMapper<Boolean> {
+		@Override
+		public Boolean mapRow(ResultSet rs, int rowNum) throws SQLException {
+			return rs.getLong("count") > 0;
+		}
 	}
 }
