@@ -46,15 +46,7 @@ public class DatabaseReconciler {
 	}
 
 	private boolean doesUserExist(String user) {
-		val res = jdbcTemplate.query("SELECT count(*) as count FROM pg_database WHERE datname=?", new CountRowMapper(), user);
+		val res = jdbcTemplate.query("SELECT count(*) as count FROM pg_database WHERE datname=?", (rs, rowNum) -> rs.getLong("count") > 0, user);
 		return res.get(0);
-	}
-
-
-	public class CountRowMapper implements RowMapper<Boolean> {
-		@Override
-		public Boolean mapRow(ResultSet rs, int rowNum) throws SQLException {
-			return rs.getLong("count") > 0;
-		}
 	}
 }
