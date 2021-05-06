@@ -2,6 +2,7 @@ package dev.sircremefresh.autodba.controller.database;
 
 import dev.sircremefresh.autodba.controller.database.crd.Database;
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
+import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -9,7 +10,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 
 import java.util.Random;
@@ -39,7 +39,16 @@ public class DatabaseReconciler {
 			createUser(databaseName, password);
 			client.secrets().inNamespace(namespace).create(
 					new SecretBuilder()
-							.withNewMetadata().withName(databaseName).endMetadata()
+							.withNewMetadata()
+							.withName(databaseName)
+							.withOwnerReferences(new OwnerReferenceBuilder()
+									.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
+									.withName(newDatabase.getMetadata().getName())
+									.withKind(newDatabase.getKind())
+									.withBlockOwnerDeletion(true)
+									.withController(true)
+									.build())
+							.endMetadata()
 							.addToStringData("username", databaseName)
 							.addToStringData("password", password)
 							.build()
