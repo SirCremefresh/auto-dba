@@ -55,23 +55,15 @@ public class DatabaseReconciler {
 			throw new IllegalStateException("username has illegal characters" + user);
 		}
 
-		jdbcTemplate.execute("create user " + user + " with encrypted password " + password + ";",
-				(PreparedStatementCallback<Boolean>) ps -> {
-//					ps.setString(1, user);
-					ps.setString(1, password);
-					return ps.execute();
-				});
-		jdbcTemplate.execute("create database " + user + " OWNER " + user + ";",
-				(PreparedStatementCallback<Boolean>) ps -> {
-					ps.setString(1, user);
-					ps.setString(2, user);
-					return ps.execute();
-				});
+		jdbcTemplate.execute("create user " + user + " with encrypted password '" + password + "';");
+		jdbcTemplate.execute("create database " + user + " OWNER " + user + ";");
 	}
 
 	private boolean doesUserExist(String user) {
-		val res = jdbcTemplate.query("SELECT count(*) as count FROM pg_database WHERE datname=?",
-				(rs, rowNum) -> rs.getLong("count") > 0, user);
+		val res = jdbcTemplate.query(
+				"SELECT count(*) as count FROM pg_database WHERE datname=?",
+				(rs, rowNum) -> rs.getLong("count") > 0,
+				user);
 		return res.get(0);
 	}
 
