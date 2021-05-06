@@ -2,7 +2,6 @@ package dev.sircremefresh.autodba.controller.database;
 
 import dev.sircremefresh.autodba.controller.database.crd.Database;
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
-import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -41,13 +40,16 @@ public class DatabaseReconciler {
 					new SecretBuilder()
 							.withNewMetadata()
 							.withName(databaseName)
-							.withOwnerReferences(new OwnerReferenceBuilder()
-									.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
-									.withName(newDatabase.getMetadata().getName())
-									.withKind(newDatabase.getKind())
-									.withBlockOwnerDeletion(true)
-									.withController(true)
-									.build())
+
+							.addNewOwnerReference()
+							.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
+							.withName(newDatabase.getMetadata().getName())
+							.withKind(newDatabase.getKind())
+							.withBlockOwnerDeletion(true)
+							.withController(true)
+							.withNewUid(newDatabase.getMetadata().getUid())
+							.endOwnerReference()
+
 							.endMetadata()
 							.addToStringData("username", databaseName)
 							.addToStringData("password", password)
