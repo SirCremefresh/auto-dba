@@ -4,5 +4,5 @@ metadata:
   namespace: auto-dba-dev
   name: test-database
 spec:
-  databaseName: Hello2
+  databaseName: hello2
   secretName: test-database-secret-2
