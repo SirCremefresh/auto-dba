@@ -8,25 +8,41 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Random;
 import java.util.regex.Pattern;
 
 @Repository
 public class DatabaseReconciler {
 
-	final JdbcTemplate jdbcTemplate;
+	final JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
 	final KubernetesClient client;
 	final MixedOperation<Database, DatabaseList, Resource<Database>> databaseClient;
 
 	@Autowired
-	public DatabaseReconciler(KubernetesClient client, JdbcTemplate jdbcTemplate) {
+	public DatabaseReconciler(KubernetesClient client) throws SQLException {
 		this.client = client;
+		val conn = DriverManager.getConnection("");
+
 		databaseClient = client.customResources(Database.class, DatabaseList.class);
-		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	@Bean
+	public DataSource dataSource(){
+		DriverManagerDataSource ds = new DriverManagerDataSource();
+		ds.setDriverClassName("com.mysql.jdbc.Driver");
+		ds.setUrl("jdbc:mysql://localhost:3306/gene");
+		ds.setUsername("");
+		ds.setPassword("");
+		return ds;
 	}
 
 	public void reconcile(Database oldDatabase, Database newDatabase) {
