@@ -3,8 +3,8 @@ package dev.sircremefresh.autodba.controller;
 import dev.sircremefresh.autodba.controller.database.DatabaseReconciler;
 import dev.sircremefresh.autodba.controller.database.crd.Database;
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
-import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServer;
-import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServerList;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.ClusterDatabaseServer;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.ClusterDatabaseServerList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
@@ -40,7 +40,7 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 			SharedInformerFactory informerFactory = client.informers();
 
 			SharedIndexInformer<Database> databaseInformer = informerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, RESYNC_PERIOD_MILLIS);
-			SharedIndexInformer<DatabaseServer> databaseServerInformer = informerFactory.sharedIndexInformerForCustomResource(DatabaseServer.class, DatabaseServerList.class, RESYNC_PERIOD_MILLIS);
+			SharedIndexInformer<ClusterDatabaseServer> databaseServerInformer = informerFactory.sharedIndexInformerForCustomResource(ClusterDatabaseServer.class, ClusterDatabaseServerList.class, RESYNC_PERIOD_MILLIS);
 
 			val controller = new AutoDbaController(databaseInformer, databaseServerInformer, databaseReconciler);
 

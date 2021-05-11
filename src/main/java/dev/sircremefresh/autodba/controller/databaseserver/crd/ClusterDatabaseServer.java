@@ -2,7 +2,6 @@ package dev.sircremefresh.autodba.controller.databaseserver.crd;
 
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseSpec;
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseStatus;
-import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
@@ -15,5 +14,5 @@ import io.sundr.builder.annotations.Buildable;
 @Kind("DatabaseServer")
 @Plural("DatabaseServers")
 @Buildable
-public class DatabaseServer extends CustomResource<DatabaseSpec, DatabaseStatus> implements Namespaced {
+public class ClusterDatabaseServer extends CustomResource<DatabaseSpec, DatabaseStatus> {
 }

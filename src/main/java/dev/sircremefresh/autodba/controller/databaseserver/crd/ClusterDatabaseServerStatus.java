@@ -6,9 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class DatabaseServerStatus {
+public class ClusterDatabaseServerStatus {
 	private String status;
 }

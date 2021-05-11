@@ -2,7 +2,7 @@ package dev.sircremefresh.autodba.controller;
 
 import dev.sircremefresh.autodba.controller.database.DatabaseReconciler;
 import dev.sircremefresh.autodba.controller.database.crd.Database;
-import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServer;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.ClusterDatabaseServer;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.cache.Cache;
@@ -20,13 +20,13 @@ public class AutoDbaController {
 
 	private final BlockingQueue<String> workQueue = new ArrayBlockingQueue<>(1024);
 	private final SharedIndexInformer<Database> databaseInformer;
-	private final SharedIndexInformer<DatabaseServer> databaseServerInformer;
+	private final SharedIndexInformer<ClusterDatabaseServer> databaseServerInformer;
 	private final DatabaseReconciler databaseReconciler;
 	private final Lister<Database> databaseLister;
 
 	public AutoDbaController(
 			SharedIndexInformer<Database> databaseInformer,
-			SharedIndexInformer<DatabaseServer> databaseServerInformer,
+			SharedIndexInformer<ClusterDatabaseServer> databaseServerInformer,
 			DatabaseReconciler databaseReconciler) {
 		this.databaseInformer = databaseInformer;
 		this.databaseServerInformer = databaseServerInformer;
@@ -59,22 +59,33 @@ public class AutoDbaController {
 
 		databaseServerInformer.addEventHandler(new ResourceEventHandler<>() {
 			@Override
-			public void onAdd(DatabaseServer database) {
+			public void onAdd(ClusterDatabaseServer database) {
 				System.out.printf("%s database added\n", database.getMetadata().getName());
 			}
 
 			@Override
-			public void onUpdate(DatabaseServer oldDatabaseServer, DatabaseServer newDatabaseServer) {
-				if (oldDatabaseServer.getMetadata().getResourceVersion().equals(newDatabaseServer.getMetadata().getResourceVersion())) {
+			public void onUpdate(ClusterDatabaseServer oldClusterDatabaseServer, ClusterDatabaseServer newClusterDatabaseServer) {
+				if (oldClusterDatabaseServer.getMetadata().getResourceVersion().equals(newClusterDatabaseServer.getMetadata().getResourceVersion())) {
 					return;
 				}
+
+				handleDatabaseServer(newClusterDatabaseServer);
 			}
 
 			@Override
-			public void onDelete(DatabaseServer database, boolean deletedFinalStateUnknown) {
+			public void onDelete(ClusterDatabaseServer database, boolean deletedFinalStateUnknown) {
 				System.out.printf("%s database deleted \n", database.getMetadata().getName());
 			}
 		});
+	}
+
+	private void handleDatabaseServer(@NonNull ClusterDatabaseServer newClusterDatabaseServer) {
+		logger.info("handleDatabaseServer({})", Cache.metaNamespaceKeyFunc(newClusterDatabaseServer));
+		databaseLister
+				.list()
+				.stream()
+				.filter(database -> newClusterDatabaseServer.getMetadata().getName().equals(database.getSpec().getServerRef().getName()))
+				.forEach(this::enqueueDatabase);
 	}
 
 	private void enqueueDatabase(@NonNull Database database) {

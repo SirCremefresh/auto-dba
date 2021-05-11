@@ -2,8 +2,8 @@ package dev.sircremefresh.autodba.controller;
 
 import dev.sircremefresh.autodba.controller.database.crd.Database;
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
-import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServer;
-import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServerList;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.ClusterDatabaseServer;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.ClusterDatabaseServerList;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -27,8 +27,8 @@ public class ClientProducer {
 	}
 
 	@Bean
-	MixedOperation<DatabaseServer, DatabaseServerList, Resource<DatabaseServer>> makeDatabaseServerClient(KubernetesClient client) {
-		KubernetesDeserializer.registerCustomKind("v1alpha1", "DatabaseServer", DatabaseServer.class);
-		return client.customResources(DatabaseServer.class, DatabaseServerList.class);
+	MixedOperation<ClusterDatabaseServer, ClusterDatabaseServerList, Resource<ClusterDatabaseServer>> makeDatabaseServerClient(KubernetesClient client) {
+		KubernetesDeserializer.registerCustomKind("v1alpha1", "DatabaseServer", ClusterDatabaseServer.class);
+		return client.customResources(ClusterDatabaseServer.class, ClusterDatabaseServerList.class);
 	}
 }

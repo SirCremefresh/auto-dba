@@ -6,11 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class DatabaseServerSpec {
-	private String databaseName;
+public class ClusterDatabaseServerSpec {
 	private String secretName;
 	private String type;
 }

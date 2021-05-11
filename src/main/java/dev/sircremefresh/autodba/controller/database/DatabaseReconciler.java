@@ -45,10 +45,10 @@ public class DatabaseReconciler {
 		return ds;
 	}
 
-	public void reconcile(Database oldDatabase) {
+	public void reconcile(Database database) {
 		System.out.println(jdbcTemplate.getQueryTimeout());
-		val databaseName = newDatabase.getSpec().getDatabaseName();
-		val namespace = newDatabase.getMetadata().getNamespace();
+		val databaseName = database.getSpec().getDatabaseName();
+		val namespace = database.getMetadata().getNamespace();
 		if (!doesUserExist(databaseName)) {
 			val password = genPassword();
 			createUser(databaseName, password);
@@ -59,11 +59,11 @@ public class DatabaseReconciler {
 
 							.addNewOwnerReference()
 							.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
-							.withName(newDatabase.getMetadata().getName())
-							.withKind(newDatabase.getKind())
+							.withName(database.getMetadata().getName())
+							.withKind(database.getKind())
 							.withBlockOwnerDeletion(true)
 							.withController(true)
-							.withNewUid(newDatabase.getMetadata().getUid())
+							.withNewUid(database.getMetadata().getUid())
 							.endOwnerReference()
 
 							.endMetadata()
