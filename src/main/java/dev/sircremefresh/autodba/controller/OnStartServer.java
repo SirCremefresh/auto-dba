@@ -3,12 +3,16 @@ package dev.sircremefresh.autodba.controller;
 import dev.sircremefresh.autodba.controller.database.DatabaseReconciler;
 import dev.sircremefresh.autodba.controller.database.crd.Database;
 import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServer;
+import dev.sircremefresh.autodba.controller.databaseserver.crd.DatabaseServerList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import lombok.NonNull;
+import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -16,6 +20,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OnStartServer implements ApplicationListener<ContextRefreshedEvent> {
+	private static final Logger logger = LoggerFactory.getLogger(OnStartServer.class.getName());
+	private static final long RESYNC_PERIOD_MILLIS = 10 * 60 * 1000;
+
 	private final KubernetesClient client;
 	private final DatabaseReconciler databaseReconciler;
 
@@ -27,31 +34,23 @@ public class OnStartServer implements ApplicationListener<ContextRefreshedEvent>
 
 	@Override
 	public void onApplicationEvent(@NonNull ContextRefreshedEvent contextRefreshedEvent) {
-		KubernetesDeserializer.registerCustomKind("v1alpha1", "Database", Database.class);
+		try (client) {
+			logger.info("Starting");
 
-		SharedInformerFactory sharedInformerFactory = client.informers();
+			SharedInformerFactory informerFactory = client.informers();
 
-		SharedIndexInformer<Database> databaseInformer = sharedInformerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, 15 * 1000L);
+			SharedIndexInformer<Database> databaseInformer = informerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, RESYNC_PERIOD_MILLIS);
+			SharedIndexInformer<DatabaseServer> databaseServerInformer = informerFactory.sharedIndexInformerForCustomResource(DatabaseServer.class, DatabaseServerList.class, RESYNC_PERIOD_MILLIS);
 
-		databaseInformer.addEventHandler(new ResourceEventHandler<>() {
-			@Override
-			public void onAdd(Database database) {
-				System.out.printf("%s database added\n", database.getMetadata().getName());
-			}
+			val controller = new AutoDbaController(databaseInformer, databaseServerInformer, databaseReconciler);
 
-			@Override
-			public void onUpdate(Database oldDatabase, Database newDatabase) {
-				System.out.printf("%s database updated\n", oldDatabase.getMetadata().getName());
-				System.out.printf("version1: %s, version: %s\n", oldDatabase.getMetadata().getResourceVersion(), newDatabase.getMetadata().getResourceVersion());
-				databaseReconciler.reconcile(oldDatabase, newDatabase);
-			}
+			informerFactory.startAllRegisteredInformers();
+			informerFactory.addSharedInformerEventListener(exception -> logger.error("Exception occurred, but caught", exception));
 
-			@Override
-			public void onDelete(Database database, boolean deletedFinalStateUnknown) {
-				System.out.printf("%s database deleted \n", database.getMetadata().getName());
-			}
-		});
-
-		databaseInformer.run();
+			logger.info("Starting {} Controller", AutoDbaController.class.getSimpleName());
+			controller.run();
+		} catch (KubernetesClientException exception) {
+			logger.error("Kubernetes Client Exception : ", exception);
+		}
 	}
 }

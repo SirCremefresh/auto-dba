@@ -45,7 +45,7 @@ public class DatabaseReconciler {
 		return ds;
 	}
 
-	public void reconcile(Database oldDatabase, Database newDatabase) {
+	public void reconcile(Database oldDatabase) {
 		System.out.println(jdbcTemplate.getQueryTimeout());
 		val databaseName = newDatabase.getSpec().getDatabaseName();
 		val namespace = newDatabase.getMetadata().getNamespace();
