@@ -3,21 +3,20 @@ kind: CustomResourceDefinition
 metadata:
   labels:
     app: auto-dba
-  name: databases.autodba.sircremefresh.dev
-  namespace: auto-dba-dev
+  name: clusterdatabaseservers.autodba.sircremefresh.dev
 spec:
   group: autodba.sircremefresh.dev
   names:
-    kind: Database
-    listKind: DatabaseList
-    plural: databases
-    singular: database
-  scope: Namespaced
+    kind: ClusterDatabaseServer
+    listKind: ClusterDatabaseServerList
+    plural: clusterdatabaseservers
+    singular: clusterdatabaseserver
+  scope: Cluster
   versions:
     - name: v1alpha1
       schema:
         openAPIV3Schema:
-          description: "A Database"
+          description: "A ClusterDatabaseServer"
           properties:
             apiVersion:
               description: 'APIVersion defines the versioned schema of this representation
@@ -32,27 +31,33 @@ spec:
             metadata:
               type: object
             spec:
-              description: Desired state of the Certificate resource.
+              description: Desired state of the ClusterDatabaseServer resource.
               properties:
-                databaseName:
-                  description: 'CommonName is a common name to be used on the Certificate.
-                  The CommonName should have a length of 64 characters or fewer to
-                  avoid generating invalid CSRs. This value is ignored by TLS clients
-                  when any subject alt name is set. This is x509 behaviour: https://tools.ietf.org/html/rfc6125#section-6.4.4'
+                authSecretRef:
+                  description: 'The reference to the secret holding the authentication credentials'
+                  properties:
+                    name:
+                      description: 'Name of the resource being referred to. More
+                                    info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
+                      type: string
+                  required:
+                    - name
+                  type: object
+                jdbcUrl:
+                  description: 'The Url of the database server to connect to'
                   type: string
-                  pattern: '^[a-z0-9_]{3,59}$'
-                secretName:
-                  description: SecretName is the name of the secret resource that will
-                    be automatically created and managed by this Certificate resource.
-                    It will be populated with a private key and certificate, signed
-                    by the denoted issuer.
+                databaseType:
+                  description: 'Database type connecting to'
+                  enum:
+                    - PostgreSQL
                   type: string
               required:
-                - databaseName
-                - secretName
+                - authSecretRef
+                - jdbcUrl
+                - databaseType
               type: object
             status:
-              description: Status of the Database. This is set and managed automatically.
+              description: Status of the ClusterDatabaseServer. This is set and managed automatically.
               properties:
                 status:
                   description: Status of the condition, one of (`True`, `False`,
@@ -74,5 +79,3 @@ spec:
           type: object
       served: true
       storage: true
-      subresources:
-        status: { }
