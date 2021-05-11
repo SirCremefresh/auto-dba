@@ -1,8 +1,8 @@
 package dev.sircremefresh.autodba.controller;
 
+import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServer;
 import dev.sircremefresh.autodba.controller.crd.database.Database;
 import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -10,13 +10,10 @@ import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Random;
 import java.util.regex.Pattern;
@@ -48,8 +45,8 @@ public class DatabaseReconciler {
 //		return ds;
 //	}
 
-	public void reconcile(Database database) {
-		logger.info("reconcile database {}",database);
+	public void reconcile(Database database, @Nullable ClusterDatabaseServer databaseServer) {
+		logger.info("reconcile database {}", database);
 //		System.out.println(jdbcTemplate.getQueryTimeout());
 //		val databaseName = database.getSpec().getDatabaseName();
 //		val namespace = database.getMetadata().getNamespace();

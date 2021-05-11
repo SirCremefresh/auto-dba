@@ -4,7 +4,7 @@ metadata:
   namespace: auto-dba-dev
   name: test-database
 spec:
-  jdbcUrl: 'dd'
+  jdbcUrl: 'jdbc:postgresql://localhost:5432'
   authSecretRef:
     name: ''
   databaseType: 'PostgreSQL'

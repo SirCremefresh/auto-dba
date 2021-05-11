@@ -1,9 +1,9 @@
 package dev.sircremefresh.autodba.controller;
 
-import dev.sircremefresh.autodba.controller.crd.database.Database;
-import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
 import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServer;
 import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServerList;
+import dev.sircremefresh.autodba.controller.crd.database.Database;
+import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;

@@ -21,6 +21,7 @@ public class AutoDbaController {
 	private final SharedIndexInformer<ClusterDatabaseServer> databaseServerInformer;
 	private final DatabaseReconciler databaseReconciler;
 	private final Lister<Database> databaseLister;
+	private final Lister<ClusterDatabaseServer> databaseServerLister;
 
 	public AutoDbaController(
 			SharedIndexInformer<Database> databaseInformer,
@@ -29,6 +30,7 @@ public class AutoDbaController {
 		this.databaseInformer = databaseInformer;
 		this.databaseServerInformer = databaseServerInformer;
 		this.databaseReconciler = databaseReconciler;
+		this.databaseServerLister = new Lister<>(databaseServerInformer.getIndexer());
 		this.databaseLister = new Lister<>(databaseInformer.getIndexer());
 		addListeners();
 	}
@@ -126,7 +128,8 @@ public class AutoDbaController {
 					return;
 				}
 
-				databaseReconciler.reconcile(database);
+				ClusterDatabaseServer databaseServer = databaseServerLister.get(database.getSpec().getServerRef().getName());
+				databaseReconciler.reconcile(database, databaseServer);
 			} catch (InterruptedException interruptedException) {
 				Thread.currentThread().interrupt();
 				logger.error("Controller interrupted");
