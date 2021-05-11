@@ -1,10 +1,10 @@
 apiVersion: autodba.sircremefresh.dev/v1alpha1
-kind: Database
+kind: ClusterDatabaseServer
 metadata:
   namespace: auto-dba-dev
   name: test-database
 spec:
-  secretName: ''
-  databaseName: 'dsds'
-  serverRef:
-    name: 'test-database'
+  jdbcUrl: 'dd'
+  authSecretRef:
+    name: ''
+  databaseType: 'PostgreSQL'

@@ -1,10 +1,7 @@
 package dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver;
 
 import io.sundr.builder.annotations.Buildable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.*;
 
 @Buildable(
 		editableEnabled = false,
@@ -13,6 +10,7 @@ import lombok.ToString;
 @ToString
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ClusterDatabaseServerSpec {
 	@NonNull
 	private AuthSecretRef authSecretRef;

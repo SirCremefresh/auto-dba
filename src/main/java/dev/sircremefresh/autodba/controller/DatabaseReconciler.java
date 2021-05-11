@@ -7,6 +7,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -21,6 +23,7 @@ import java.util.regex.Pattern;
 
 @Repository
 public class DatabaseReconciler {
+	private static final Logger logger = LoggerFactory.getLogger(DatabaseReconciler.class.getName());
 
 	final JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
@@ -46,35 +49,36 @@ public class DatabaseReconciler {
 //	}
 
 	public void reconcile(Database database) {
-		System.out.println(jdbcTemplate.getQueryTimeout());
-		val databaseName = database.getSpec().getDatabaseName();
-		val namespace = database.getMetadata().getNamespace();
-		if (!doesUserExist(databaseName)) {
-			val password = genPassword();
-			createUser(databaseName, password);
-			client.secrets().inNamespace(namespace).create(
-					new SecretBuilder()
-							.withNewMetadata()
-							.withName(databaseName)
-
-							.addNewOwnerReference()
-							.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
-							.withName(database.getMetadata().getName())
-							.withKind(database.getKind())
-							.withBlockOwnerDeletion(true)
-							.withController(true)
-							.withNewUid(database.getMetadata().getUid())
-							.endOwnerReference()
-
-							.endMetadata()
-							.addToStringData("username", databaseName)
-							.addToStringData("password", password)
-							.build()
-			);
-			System.out.println("created user: " + databaseName);
-		} else {
-			System.out.println("user already exists: " + databaseName);
-		}
+		logger.info("reconcile database {}",database);
+//		System.out.println(jdbcTemplate.getQueryTimeout());
+//		val databaseName = database.getSpec().getDatabaseName();
+//		val namespace = database.getMetadata().getNamespace();
+//		if (!doesUserExist(databaseName)) {
+//			val password = genPassword();
+//			createUser(databaseName, password);
+//			client.secrets().inNamespace(namespace).create(
+//					new SecretBuilder()
+//							.withNewMetadata()
+//							.withName(databaseName)
+//
+//							.addNewOwnerReference()
+//							.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
+//							.withName(database.getMetadata().getName())
+//							.withKind(database.getKind())
+//							.withBlockOwnerDeletion(true)
+//							.withController(true)
+//							.withNewUid(database.getMetadata().getUid())
+//							.endOwnerReference()
+//
+//							.endMetadata()
+//							.addToStringData("username", databaseName)
+//							.addToStringData("password", password)
+//							.build()
+//			);
+//			System.out.println("created user: " + databaseName);
+//		} else {
+//			System.out.println("user already exists: " + databaseName);
+//		}
 	}
 
 	private void createUser(String user, String password) {

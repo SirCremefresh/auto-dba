@@ -20,5 +20,5 @@ import lombok.ToString;
 @Kind("ClusterDatabaseServer")
 @Singular("clusterdatabaseserver")
 @Plural("clusterdatabaseservers")
-public class ClusterDatabaseServer extends CustomResource<DatabaseSpec, DatabaseStatus> {
+public class ClusterDatabaseServer extends CustomResource<ClusterDatabaseServerSpec, ClusterDatabaseServerStatus> {
 }

@@ -1,7 +1,7 @@
 package dev.sircremefresh.autodba.controller;
 
-import dev.sircremefresh.autodba.controller.crd.database.Database;
 import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServer;
+import dev.sircremefresh.autodba.controller.crd.database.Database;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.cache.Cache;
@@ -58,8 +58,8 @@ public class AutoDbaController {
 
 		databaseServerInformer.addEventHandler(new ResourceEventHandler<>() {
 			@Override
-			public void onAdd(ClusterDatabaseServer database) {
-				System.out.printf("%s database added\n", database.getMetadata().getName());
+			public void onAdd(ClusterDatabaseServer clusterDatabaseServer) {
+				logger.info("ClusterDatabaseServer {} added", Cache.metaNamespaceKeyFunc(clusterDatabaseServer));
 			}
 
 			@Override
@@ -68,12 +68,13 @@ public class AutoDbaController {
 					return;
 				}
 
+				logger.info("ClusterDatabaseServer {} updated", Cache.metaNamespaceKeyFunc(newClusterDatabaseServer));
 				handleDatabaseServer(newClusterDatabaseServer);
 			}
 
 			@Override
 			public void onDelete(ClusterDatabaseServer database, boolean deletedFinalStateUnknown) {
-				System.out.printf("%s database deleted \n", database.getMetadata().getName());
+				logger.info("ClusterDatabaseServer {} deleted", Cache.metaNamespaceKeyFunc(database));
 			}
 		});
 	}

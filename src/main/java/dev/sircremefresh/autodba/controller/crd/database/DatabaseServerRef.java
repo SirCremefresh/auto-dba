@@ -1,10 +1,7 @@
 package dev.sircremefresh.autodba.controller.crd.database;
 
 import io.sundr.builder.annotations.Buildable;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.*;
 
 @Buildable(
 		editableEnabled = false,
@@ -13,7 +10,8 @@ import lombok.ToString;
 @ToString
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class DatabaseServerRef {
 	@NonNull
-	private final String name;
+	private String name;
 }
