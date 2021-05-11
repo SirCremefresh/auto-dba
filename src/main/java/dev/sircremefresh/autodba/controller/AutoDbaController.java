@@ -10,7 +10,6 @@ import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -89,7 +88,7 @@ public class AutoDbaController {
 	}
 
 	private void enqueueDatabase(@NonNull Database database) {
-		logger.info("enqueueDatabase({}/{})", database.getMetadata().getNamespace(), database.getMetadata().getName());
+		logger.info("enqueueDatabase({})", Cache.metaNamespaceKeyFunc(database));
 		String key = Cache.metaNamespaceKeyFunc(database);
 		logger.info("Going to enqueue key {}", key);
 		workQueue.add(key);
@@ -98,6 +97,7 @@ public class AutoDbaController {
 	public void run() {
 		logger.info("Starting {} controller", AutoDbaController.class.getSimpleName());
 		logger.info("Waiting for informer caches to sync");
+		//noinspection StatementWithEmptyBody
 		while (!databaseInformer.hasSynced() || !databaseServerInformer.hasSynced()) {
 			// Wait till Informer syncs
 		}
@@ -106,15 +106,14 @@ public class AutoDbaController {
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
-				logger.info("trying to fetch item from workQueue...");
+				logger.info("Fetching next item from workQueue");
 				if (workQueue.isEmpty()) {
-					logger.info("Work Queue is empty");
+					logger.info("WorkQueue is empty");
 				}
 				String key = workQueue.take();
-				Objects.requireNonNull(key, "key can't be null");
-				logger.info("Got {}", key);
+				logger.info("Got key {} from workQueue", key);
 				if (key.isEmpty() || (!key.contains("/"))) {
-					logger.warn("invalid resource key: {}", key);
+					logger.error("Key {} is not a valid resource", key);
 				}
 
 				String namespace = key.split("/")[0];
@@ -123,14 +122,14 @@ public class AutoDbaController {
 						.namespace(namespace)
 						.get(name);
 				if (database == null) {
-					logger.error("Database {}/{} in workQueue no longer exists", namespace, name);
+					logger.error("Database {} in workQueue no longer exists", key);
 					return;
 				}
 
 				databaseReconciler.reconcile(database);
 			} catch (InterruptedException interruptedException) {
 				Thread.currentThread().interrupt();
-				logger.error("controller interrupted..");
+				logger.error("Controller interrupted");
 			}
 		}
 	}
