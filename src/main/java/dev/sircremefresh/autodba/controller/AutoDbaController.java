@@ -1,8 +1,7 @@
 package dev.sircremefresh.autodba.controller;
 
-import dev.sircremefresh.autodba.controller.database.DatabaseReconciler;
-import dev.sircremefresh.autodba.controller.database.crd.Database;
-import dev.sircremefresh.autodba.controller.databaseserver.crd.ClusterDatabaseServer;
+import dev.sircremefresh.autodba.controller.crd.database.Database;
+import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServer;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.cache.Cache;
@@ -16,7 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class AutoDbaController {
-	private static final Logger logger = LoggerFactory.getLogger(OnStartServer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AutoDbaControllerStarter.class.getName());
 
 	private final BlockingQueue<String> workQueue = new ArrayBlockingQueue<>(1024);
 	private final SharedIndexInformer<Database> databaseInformer;

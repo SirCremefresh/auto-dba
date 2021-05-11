@@ -47,9 +47,22 @@ spec:
                     It will be populated with a private key and certificate, signed
                     by the denoted issuer.
                   type: string
+                serverRef:
+                  description: SecretName is the name of the secret resource that will
+                    be automatically created and managed by this Certificate resource.
+                    It will be populated with a private key and certificate, signed
+                    by the denoted issuer.
+                  properties:
+                    name:
+                      description: ''
+                      type: string
+                  required:
+                    - name
+                  type: object
               required:
                 - databaseName
                 - secretName
+                - serverRef
               type: object
             status:
               description: Status of the Database. This is set and managed automatically.

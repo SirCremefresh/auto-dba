@@ -1,7 +1,7 @@
-package dev.sircremefresh.autodba.controller.database;
+package dev.sircremefresh.autodba.controller;
 
-import dev.sircremefresh.autodba.controller.database.crd.Database;
-import dev.sircremefresh.autodba.controller.database.crd.DatabaseList;
+import dev.sircremefresh.autodba.controller.crd.database.Database;
+import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -30,20 +30,20 @@ public class DatabaseReconciler {
 	@Autowired
 	public DatabaseReconciler(KubernetesClient client) throws SQLException {
 		this.client = client;
-		val conn = DriverManager.getConnection("");
+//		val conn = DriverManager.getConnection("");
 
 		databaseClient = client.customResources(Database.class, DatabaseList.class);
 	}
 
-	@Bean
-	public DataSource dataSource(){
-		DriverManagerDataSource ds = new DriverManagerDataSource();
-		ds.setDriverClassName("com.mysql.jdbc.Driver");
-		ds.setUrl("jdbc:mysql://localhost:3306/gene");
-		ds.setUsername("");
-		ds.setPassword("");
-		return ds;
-	}
+//	@Bean
+//	public DataSource dataSource(){
+//		DriverManagerDataSource ds = new DriverManagerDataSource();
+//		ds.setDriverClassName("com.mysql.jdbc.Driver");
+//		ds.setUrl("jdbc:mysql://localhost:3306/gene");
+//		ds.setUsername("");
+//		ds.setPassword("");
+//		return ds;
+//	}
 
 	public void reconcile(Database database) {
 		System.out.println(jdbcTemplate.getQueryTimeout());

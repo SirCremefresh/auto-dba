@@ -1,23 +1,23 @@
-package dev.sircremefresh.autodba.controller.database.crd;
+package dev.sircremefresh.autodba.controller.crd.database;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.model.annotation.Group;
-import io.fabric8.kubernetes.model.annotation.Kind;
-import io.fabric8.kubernetes.model.annotation.Plural;
-import io.fabric8.kubernetes.model.annotation.Version;
+import io.fabric8.kubernetes.model.annotation.*;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import lombok.ToString;
 
 @Buildable(
 		editableEnabled = false,
 		generateBuilderPackage = false,
 		refs = {@BuildableReference(ObjectMeta.class)}
 )
+@ToString(callSuper = true)
 @Version("v1alpha1")
 @Group("autodba.sircremefresh.dev")
 @Kind("Database")
-@Plural("Databases")
+@Plural("databases")
+@Singular("database")
 public class Database extends CustomResource<DatabaseSpec, DatabaseStatus> implements Namespaced {
 }
