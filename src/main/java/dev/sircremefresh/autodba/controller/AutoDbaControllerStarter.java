@@ -37,13 +37,6 @@ public class AutoDbaControllerStarter implements ApplicationListener<ContextRefr
 		try (client) {
 			logger.info("Starting");
 
-			val event = new EventBuilder()
-					.withNewMetadata()
-					.withName("")
-					.endMetadata()
-					.build();
-			client.v1().events().inNamespace("").create(event);
-
 			SharedInformerFactory informerFactory = client.informers();
 
 			SharedIndexInformer<Database> databaseInformer = informerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, RESYNC_PERIOD_MILLIS);
