@@ -4,6 +4,7 @@ import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDat
 import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServerList;
 import dev.sircremefresh.autodba.controller.crd.database.Database;
 import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
+import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
@@ -35,6 +36,13 @@ public class AutoDbaControllerStarter implements ApplicationListener<ContextRefr
 	public void onApplicationEvent(@NonNull ContextRefreshedEvent contextRefreshedEvent) {
 		try (client) {
 			logger.info("Starting");
+
+			val event = new EventBuilder()
+					.withNewMetadata()
+					.withName("")
+					.endMetadata()
+					.build();
+			client.v1().events().inNamespace("").create(event);
 
 			SharedInformerFactory informerFactory = client.informers();
 
