@@ -149,8 +149,8 @@ public class DatabaseReconciler {
 	}
 
 	private String generateDatabaseKey(@NonNull String namespace, @NonNull String name) {
-		namespace = namespace.replace('-','_').toLowerCase(Locale.ROOT);
-		name = name.replace('-','_').toLowerCase(Locale.ROOT);
+		namespace = namespace.replace('-', '_').toLowerCase(Locale.ROOT);
+		name = name.replace('-', '_').toLowerCase(Locale.ROOT);
 
 		if (namespace.length() + name.length() + 1 <= MAX_DATABASE_KEY_LENGTH) {
 			return namespace + "_" + name;
