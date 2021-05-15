@@ -40,6 +40,7 @@ spec:
                       description: 'Name of the resource being referred to. More
                                     info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names'
                       type: string
+                      pattern: '^[a-z0-9-]{3,63}$'
                   required:
                     - name
                   type: object

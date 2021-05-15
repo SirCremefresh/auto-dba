@@ -34,19 +34,13 @@ spec:
             spec:
               description: Desired state of the Certificate resource.
               properties:
-                databaseName:
-                  description: 'CommonName is a common name to be used on the Certificate.
-                  The CommonName should have a length of 64 characters or fewer to
-                  avoid generating invalid CSRs. This value is ignored by TLS clients
-                  when any subject alt name is set. This is x509 behaviour: https://tools.ietf.org/html/rfc6125#section-6.4.4'
-                  type: string
-                  pattern: '^[a-z0-9_]{3,59}$'
                 secretName:
                   description: SecretName is the name of the secret resource that will
                     be automatically created and managed by this Certificate resource.
                     It will be populated with a private key and certificate, signed
                     by the denoted issuer.
                   type: string
+                  pattern: '^[a-z0-9-]{3,63}$'
                 serverRef:
                   description: SecretName is the name of the secret resource that will
                     be automatically created and managed by this Certificate resource.
@@ -56,11 +50,11 @@ spec:
                     name:
                       description: ''
                       type: string
+                      pattern: '^[a-z0-9-]{3,63}$'
                   required:
                     - name
                   type: object
               required:
-                - databaseName
                 - secretName
                 - serverRef
               type: object
