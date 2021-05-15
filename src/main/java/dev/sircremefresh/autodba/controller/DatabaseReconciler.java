@@ -46,7 +46,9 @@ public class DatabaseReconciler {
 		this.client = client;
 
 		try {
-			Driver.register();
+			if (!Driver.isRegistered()) {
+				Driver.register();
+			}
 		} catch (SQLException err) {
 			val msg = "Could not register postgresql driver.";
 			logger.error(msg, err);
@@ -87,9 +89,7 @@ public class DatabaseReconciler {
 
 		getConnection(databaseServer, secret)
 				.ifPresentOrElse(
-						jdbcTemplate -> {
-							handleDatabase(database, databaseServer, jdbcTemplate);
-						},
+						jdbcTemplate -> handleDatabase(database, databaseServer, jdbcTemplate),
 						() -> logger.error("Could not get connection to databaseServer {} for database {}", Cache.metaNamespaceKeyFunc(databaseServer), Cache.metaNamespaceKeyFunc(database))
 				);
 	}
