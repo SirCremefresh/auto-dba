@@ -1,10 +1,25 @@
 apiVersion: autodba.sircremefresh.dev/v1alpha1
 kind: Database
 metadata:
-  namespace: auto-dba-dev
-  name: test-database
+  namespace: steamer-prd
+  name: database
 spec:
   secretName: ''
-  databaseName: 'dsds'
+  databaseName: 'database'
+  serverRef:
+    name: 'test-database'
+
+
+
+
+---
+apiVersion: autodba.sircremefresh.dev/v1alpha1
+kind: Database
+metadata:
+  namespace: voting-prd
+  name: database
+spec:
+  secretName: ''
+  databaseName: 'database'
   serverRef:
     name: 'test-database'
