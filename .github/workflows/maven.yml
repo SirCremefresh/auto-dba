@@ -23,3 +23,5 @@ jobs:
         distribution: 'adopt'
     - name: Build with Maven
       run: mvn -B package --file pom.xml
+    - name: Build docker image
+      run: mvn -B spring-boot:build-image --file pom.xml
