@@ -4,16 +4,17 @@ import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDat
 import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDatabaseServerList;
 import dev.sircremefresh.autodba.controller.crd.database.Database;
 import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
-import io.fabric8.kubernetes.api.model.EventBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
+import io.fabric8.kubernetes.client.dsl.base.OperationContext;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import lombok.NonNull;
 import lombok.val;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.bind.Name;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
@@ -25,11 +26,13 @@ public class AutoDbaControllerStarter implements ApplicationListener<ContextRefr
 
 	private final KubernetesClient client;
 	private final DatabaseReconciler databaseReconciler;
+	private final String secretsNamespace;
 
 	@Autowired
-	public AutoDbaControllerStarter(KubernetesClient client, DatabaseReconciler databaseReconciler) {
+	public AutoDbaControllerStarter(KubernetesClient client, DatabaseReconciler databaseReconciler, @Name("secrets-namespace") String secretsNamespace) {
 		this.client = client;
 		this.databaseReconciler = databaseReconciler;
+		this.secretsNamespace = secretsNamespace;
 	}
 
 	@Override
@@ -39,10 +42,17 @@ public class AutoDbaControllerStarter implements ApplicationListener<ContextRefr
 
 			SharedInformerFactory informerFactory = client.informers();
 
-			SharedIndexInformer<Database> databaseInformer = informerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, RESYNC_PERIOD_MILLIS);
-			SharedIndexInformer<ClusterDatabaseServer> databaseServerInformer = informerFactory.sharedIndexInformerForCustomResource(ClusterDatabaseServer.class, ClusterDatabaseServerList.class, RESYNC_PERIOD_MILLIS);
+			val secretInformer = informerFactory.sharedIndexInformerFor(Secret.class, new OperationContext().withNamespace(secretsNamespace), RESYNC_PERIOD_MILLIS);
+			val databaseInformer = informerFactory.sharedIndexInformerForCustomResource(Database.class, DatabaseList.class, RESYNC_PERIOD_MILLIS);
+			val databaseServerInformer = informerFactory.sharedIndexInformerForCustomResource(ClusterDatabaseServer.class, ClusterDatabaseServerList.class, RESYNC_PERIOD_MILLIS);
 
-			val controller = new AutoDbaController(databaseInformer, databaseServerInformer, databaseReconciler);
+			val controller = new AutoDbaController(
+					databaseInformer,
+					databaseServerInformer,
+					secretInformer,
+					secretsNamespace,
+					databaseReconciler
+			);
 
 			informerFactory.startAllRegisteredInformers();
 			informerFactory.addSharedInformerEventListener(exception -> logger.error("Exception occurred, but caught", exception));

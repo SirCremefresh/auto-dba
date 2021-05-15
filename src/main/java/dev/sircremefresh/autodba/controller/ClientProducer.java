@@ -21,11 +21,11 @@ public class ClientProducer {
 	private static final Logger logger = LoggerFactory.getLogger(ClientProducer.class.getName());
 
 	@Bean
-	KubernetesClient makeDefaultKubernetesClient(@Name("namespace") String namespace) {
+	KubernetesClient makeDefaultKubernetesClient(@Name("secrets-namespace") String namespace) {
 		return new DefaultKubernetesClient().inNamespace(namespace);
 	}
 
-	@Bean(name = "namespace")
+	@Bean(name = "secrets-namespace")
 	String getDefaultNamespace() {
 		// TODO: use namespace of pod
 		return "auto-dba-dev";
