@@ -139,7 +139,7 @@ public class AutoDbaController {
 		logger.info("Starting {} controller", AutoDbaController.class.getSimpleName());
 		logger.info("Waiting for informer caches to sync");
 		//noinspection StatementWithEmptyBody
-		while (!databaseInformer.hasSynced() || !databaseServerInformer.hasSynced()) {
+		while (!databaseInformer.hasSynced() || !databaseServerInformer.hasSynced() || !secretInformer.hasSynced()) {
 			// Wait till Informer syncs
 		}
 		logger.info("Informer caches are synced");

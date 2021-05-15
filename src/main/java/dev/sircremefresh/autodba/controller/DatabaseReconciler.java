@@ -34,6 +34,9 @@ public class DatabaseReconciler {
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseReconciler.class.getName());
 	private static final String USERNAME_KEY = "username";
 	private static final String PASSWORD_KEY = "password";
+	private static final String HOST_KEY = "host";
+	private static final String PORT_KEY = "port";
+	private static final String DATABASE_KEY = "database";
 	private static final int MAX_DATABASE_KEY_LENGTH = 63;
 	private static final int DATABASE_KEY_HASH_LENGTH = 11;
 	private static final int DATABASE_KEY_IDENTIFIER_LENGTH = 50;
@@ -60,7 +63,7 @@ public class DatabaseReconciler {
 
 
 	private Optional<JdbcTemplate> getConnection(@NonNull ClusterDatabaseServer databaseServer, @NonNull Secret secret) {
-		val data = secret.getStringData();
+		val data = secret.getData();
 		if (!data.containsKey(USERNAME_KEY) || !data.containsKey(PASSWORD_KEY)) {
 			logger.warn("Secret {} for databaseServer {} does not contain username or password", Cache.metaNamespaceKeyFunc(secret), Cache.metaNamespaceKeyFunc(databaseServer));
 			return Optional.empty();
@@ -131,11 +134,11 @@ public class DatabaseReconciler {
 				.endOwnerReference()
 
 				.endMetadata()
-				.addToStringData("database", databaseKey)
-				.addToStringData("username", databaseKey)
-				.addToStringData("password", password)
-				.addToStringData("host", databaseServer.getSpec().getHost())
-				.addToStringData("port", databaseServer.getSpec().getPort())
+				.addToStringData(DATABASE_KEY, databaseKey)
+				.addToStringData(USERNAME_KEY, databaseKey)
+				.addToStringData(PASSWORD_KEY, password)
+				.addToStringData(HOST_KEY, databaseServer.getSpec().getHost())
+				.addToStringData(PORT_KEY, databaseServer.getSpec().getPort())
 				.build();
 
 		client.secrets().createOrReplace(secret);
