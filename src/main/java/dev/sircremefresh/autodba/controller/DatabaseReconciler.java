@@ -4,6 +4,7 @@ import dev.sircremefresh.autodba.controller.crd.clusterdatabaseserver.ClusterDat
 import dev.sircremefresh.autodba.controller.crd.database.Database;
 import dev.sircremefresh.autodba.controller.crd.database.DatabaseList;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -16,13 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.regex.Pattern;
@@ -35,8 +37,6 @@ public class DatabaseReconciler {
 	private static final int MAX_DATABASE_KEY_LENGTH = 63;
 	private static final int DATABASE_KEY_HASH_LENGTH = 11;
 	private static final int DATABASE_KEY_IDENTIFIER_LENGTH = 50;
-
-	final JdbcTemplate jdbcTemplate = new JdbcTemplate();
 
 	final KubernetesClient client;
 	final MixedOperation<Database, DatabaseList, Resource<Database>> databaseClient;
@@ -57,19 +57,21 @@ public class DatabaseReconciler {
 	}
 
 
-	private Optional<Connection> getConnection(@NonNull ClusterDatabaseServer databaseServer, @NonNull Secret secret) {
+	private Optional<JdbcTemplate> getConnection(@NonNull ClusterDatabaseServer databaseServer, @NonNull Secret secret) {
 		val data = secret.getStringData();
 		if (!data.containsKey(USERNAME_KEY) || !data.containsKey(PASSWORD_KEY)) {
 			logger.warn("Secret {} for databaseServer {} does not contain username or password", Cache.metaNamespaceKeyFunc(secret), Cache.metaNamespaceKeyFunc(databaseServer));
 			return Optional.empty();
 		}
+		String jdbcUrl = "jdbc:postgresql://" + databaseServer.getSpec().getHost() + ":" + databaseServer.getSpec().getPort();
+		val manager = new DriverManagerDataSource(jdbcUrl, data.get(USERNAME_KEY), data.get(PASSWORD_KEY));
 		try {
-			val manager = new DriverManagerDataSource(databaseServer.getSpec().getJdbcUrl(), data.get(USERNAME_KEY), data.get(PASSWORD_KEY));
-			return Optional.of(manager.getConnection());
+			Objects.requireNonNull(manager.getConnection());
 		} catch (SQLException err) {
 			logger.error("Could not connect to databaseServer {}", Cache.metaNamespaceKeyFunc(databaseServer), err);
 			return Optional.empty();
 		}
+		return Optional.of(new JdbcTemplate(manager));
 	}
 
 	public void reconcile(Database database, @Nullable ClusterDatabaseServer databaseServer, @Nullable Secret secret) {
@@ -85,50 +87,59 @@ public class DatabaseReconciler {
 
 		getConnection(databaseServer, secret)
 				.ifPresentOrElse(
-						connection -> {
-							try (connection) {
-								handleDatabase(database, connection);
-							} catch (SQLException ex) {
-								logger.error("Error occurred in database connection for database {} in databaseServer {}", Cache.metaNamespaceKeyFunc(database), Cache.metaNamespaceKeyFunc(databaseServer));
-							}
+						jdbcTemplate -> {
+							handleDatabase(database, databaseServer, jdbcTemplate);
 						},
 						() -> logger.error("Could not get connection to databaseServer {} for database {}", Cache.metaNamespaceKeyFunc(databaseServer), Cache.metaNamespaceKeyFunc(database))
 				);
-
-//		System.out.println(jdbcTemplate.getQueryTimeout());
-//		val databaseName = database.getSpec().getDatabaseName();
-//		val namespace = database.getMetadata().getNamespace();
-//		if (!doesUserExist(databaseName)) {
-//			val password = genPassword();
-//			createUser(databaseName, password);
-//			client.secrets().inNamespace(namespace).create(
-//					new SecretBuilder()
-//							.withNewMetadata()
-//							.withName(databaseName)
-//
-//							.addNewOwnerReference()
-//							.withApiVersion("autodba.sircremefresh.dev/v1alpha1")
-//							.withName(database.getMetadata().getName())
-//							.withKind(database.getKind())
-//							.withBlockOwnerDeletion(true)
-//							.withController(true)
-//							.withNewUid(database.getMetadata().getUid())
-//							.endOwnerReference()
-//
-//							.endMetadata()
-//							.addToStringData("username", databaseName)
-//							.addToStringData("password", password)
-//							.build()
-//			);
-//			System.out.println("created user: " + databaseName);
-//		} else {
-//			System.out.println("user already exists: " + databaseName);
-//		}
 	}
 
 
-	private void handleDatabase(@NonNull Database database, @NonNull Connection connection) {
+	private void handleDatabase(@NonNull Database database, @NonNull ClusterDatabaseServer databaseServer, @NonNull JdbcTemplate jdbcTemplate) {
+		logger.info("handleDatabase({})", Cache.metaNamespaceKeyFunc(database));
+
 		val databaseKey = generateDatabaseKey(database.getMetadata().getNamespace(), database.getMetadata().getName());
+
+		val secretName = database.getSpec().getSecretName();
+		val secretResource = client.secrets().inNamespace(database.getMetadata().getNamespace()).withName(secretName);
+		if (secretResource.get() != null) {
+			logger.info("Handling Database {} secret already created skipping", Cache.metaNamespaceKeyFunc(database));
+			return;
+		}
+
+		val password = genPassword();
+
+		try {
+			logger.info("Creating database/user for Database resource {}", Cache.metaNamespaceKeyFunc(database));
+			createDatabaseAndUser(databaseKey, password, jdbcTemplate);
+		} catch (DataAccessException err) {
+			logger.error("Could not create database/user for Database resource {}", Cache.metaNamespaceKeyFunc(database), err);
+			return;
+		}
+
+		val secret = new SecretBuilder()
+				.withNewMetadata()
+				.withName(secretName)
+
+				.addNewOwnerReference()
+				.withApiVersion(database.getApiVersion())
+				.withName(database.getMetadata().getName())
+				.withKind(database.getKind())
+				.withBlockOwnerDeletion(true)
+				.withController(true)
+				.withNewUid(database.getMetadata().getUid())
+				.endOwnerReference()
+
+				.endMetadata()
+				.addToStringData("database", databaseKey)
+				.addToStringData("username", databaseKey)
+				.addToStringData("password", password)
+				.addToStringData("host", databaseServer.getSpec().getHost())
+				.addToStringData("port", databaseServer.getSpec().getPort())
+				.build();
+
+		client.secrets().createOrReplace(secret);
+		logger.info("Created secret for Database {}", Cache.metaNamespaceKeyFunc(database));
 	}
 
 	private String generateDatabaseKey(@NonNull String namespace, @NonNull String name) {
@@ -146,23 +157,22 @@ public class DatabaseReconciler {
 		return namespace.substring(0, identifierFieldLength) + "-" + name.substring(0, identifierFieldLength) + "-" + hash;
 	}
 
-	private void createUser(String user, String password) {
-		if (!Pattern.matches("^[a-z0-9_]{3,59}$", user)) {
-			throw new IllegalStateException("username has illegal characters" + user);
+	private void createDatabaseAndUser(@NonNull String user, @NonNull String password, @NonNull JdbcTemplate jdbcTemplate) {
+		val reg = "^[a-z0-9_]{3,59}$";
+		if (!Pattern.matches(reg, user) || !Pattern.matches(reg, password)) {
+			throw new IllegalStateException("Username or Password has illegal characters" + user);
 		}
 
 		jdbcTemplate.execute("create user " + user + " with encrypted password '" + password + "';");
 		jdbcTemplate.execute("create database " + user + " OWNER " + user + ";");
 	}
 
-	private boolean doesUserExist(String user) {
-		val res = jdbcTemplate.query(
+	private boolean doesUserExist(@NonNull String user, @NonNull JdbcTemplate jdbcTemplate) {
+		val rs = jdbcTemplate.queryForRowSet(
 				"SELECT count(*) > 0 as exists FROM pg_database WHERE datname=?",
-				(rs, rowNum) -> rs.getBoolean("exists"),
 				user);
-		return res.get(0);
+		return rs.getBoolean("exists");
 	}
-
 
 	private String genPassword() {
 		String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";

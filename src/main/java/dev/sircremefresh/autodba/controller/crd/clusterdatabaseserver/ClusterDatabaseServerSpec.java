@@ -15,7 +15,9 @@ public class ClusterDatabaseServerSpec {
 	@NonNull
 	private AuthSecretRef authSecretRef;
 	@NonNull
-	private String jdbcUrl;
+	private String host;
+	@NonNull
+	private String port;
 	@NonNull
 	private String databaseType;
 }

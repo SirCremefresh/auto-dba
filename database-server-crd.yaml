@@ -43,8 +43,11 @@ spec:
                   required:
                     - name
                   type: object
-                jdbcUrl:
-                  description: 'The Url of the database server to connect to'
+                host:
+                  description: 'The Host of the database server to connect to'
+                  type: string
+                port:
+                  description: 'The Port of the database server to connect to'
                   type: string
                 databaseType:
                   description: 'Database type connecting to'
@@ -53,7 +56,8 @@ spec:
                   type: string
               required:
                 - authSecretRef
-                - jdbcUrl
+                - host
+                - port
                 - databaseType
               type: object
             status:
