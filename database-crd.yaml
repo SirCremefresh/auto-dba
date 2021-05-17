@@ -47,7 +47,7 @@ spec:
                     It will be populated with a private key and certificate, signed
                     by the denoted issuer.
                   type: string
-                  pattern: '^[a-z0-9-]{3,63}$'
+                  pattern: '^[a-z0-9-]{1,63}$'
                 serverRef:
                   description: SecretName is the name of the secret resource that will
                     be automatically created and managed by this Certificate resource.
@@ -57,7 +57,7 @@ spec:
                     name:
                       description: ''
                       type: string
-                      pattern: '^[a-z0-9-]{3,63}$'
+                      pattern: '^[a-z0-9-]{1,63}$'
                   required:
                     - name
                   type: object

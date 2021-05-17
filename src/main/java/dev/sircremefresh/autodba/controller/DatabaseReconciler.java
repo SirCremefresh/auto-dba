@@ -31,6 +31,7 @@ public class DatabaseReconciler {
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseReconciler.class.getName());
 	private static final String USERNAME_KEY = "username";
 	private static final String PASSWORD_KEY = "password";
+	private static final String URL_KEY = "url";
 	private static final String HOST_KEY = "host";
 	private static final String PORT_KEY = "port";
 	private static final String DATABASE_KEY = "database";
@@ -46,9 +47,6 @@ public class DatabaseReconciler {
 		this.client = client;
 
 		try {
-//			if (!Driver.isRegistered()) {
-//				Driver.register();
-//			}
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException err) {
 			val msg = "Could not register postgresql driver.";
@@ -135,17 +133,22 @@ public class DatabaseReconciler {
 				.withController(true)
 				.withNewUid(database.getMetadata().getUid())
 				.endOwnerReference()
-
+				
 				.endMetadata()
 				.addToStringData(DATABASE_KEY, databaseKey)
 				.addToStringData(USERNAME_KEY, databaseKey)
 				.addToStringData(PASSWORD_KEY, password)
 				.addToStringData(HOST_KEY, databaseServer.getSpec().getHost())
 				.addToStringData(PORT_KEY, databaseServer.getSpec().getPort())
+				.addToStringData(URL_KEY, getDatabaseUrl(databaseServer, databaseKey, password))
 				.build();
 
 		client.secrets().createOrReplace(secret);
 		logger.info("Created secret for Database {}", Cache.metaNamespaceKeyFunc(database));
+	}
+
+	private String getDatabaseUrl(ClusterDatabaseServer databaseServer, String databaseKey, String password) {
+		return "postgres://" + databaseKey + ":" + password + "@" + databaseServer.getSpec().getHost() + ":" + databaseServer.getSpec().getPort() + "/" + databaseKey;
 	}
 
 	private String generateDatabaseKey(@NonNull String namespace, @NonNull String name) {
