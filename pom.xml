@@ -15,7 +15,7 @@
     <description>Demo project for Spring Boot</description>
     <properties>
         <java.version>16</java.version>
-        <testcontainers.version>1.15.3</testcontainers.version>
+        <testcontainers.version>1.17.1</testcontainers.version>
         <bouncycastle.version>1.68</bouncycastle.version>
         <kubernete-client.version>5.4.0</kubernete-client.version>
     </properties>
