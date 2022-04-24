@@ -17,7 +17,7 @@
         <java.version>16</java.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <bouncycastle.version>1.68</bouncycastle.version>
-        <kubernete-client.version>5.4.0</kubernete-client.version>
+        <kubernete-client.version>5.12.2</kubernete-client.version>
     </properties>
     <dependencies>
         <dependency>
